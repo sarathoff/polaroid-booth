@@ -16,7 +16,7 @@ class CanvasDrawer {
             IMG_SIZE: 1000,
             POLAROID_WIDTH: 1000 + 60 * 2,
             get POLAROID_HEIGHT() { return this.IMG_SIZE + this.PADDING + this.TEXT_AREA_HEIGHT; },
-            GRID_GAP: 100
+            GRID_GAP: 100,
         };
     }
 
@@ -39,6 +39,8 @@ class CanvasDrawer {
             Promise.all(imagePromises),
             Promise.all(decoPromises.filter(p => p))
         ]);
+        console.log("Loaded decorations (decoMap):");
+        loadedDecos.forEach(d => console.log(`  ID: ${d.id}, Image: ${d.img.src}`));
 
         const decoMap = new Map(loadedDecos.map(d => [d.id, d.img]));
         return { loadedImages, decoMap };
@@ -55,6 +57,7 @@ class CanvasDrawer {
     }
 
     _drawSinglePolaroid(img, text, decoMap, filterValue, font) {
+        console.log("Entering _drawSinglePolaroid. decoMap:", decoMap);
         const { PADDING, IMG_SIZE, TEXT_AREA_HEIGHT, POLAROID_WIDTH, POLAROID_HEIGHT, FONT_SIZE } = this.CONSTANTS;
         const polaroidBg = getComputedStyle(document.documentElement).getPropertyValue('--polaroid-bg').trim();
 
@@ -78,10 +81,22 @@ class CanvasDrawer {
 
         // C. Draw Decorations
         for (const [id, decoImg] of decoMap.entries()) {
+            console.log("Drawing decoration in canvas:", id, decoImg);
             const d = this.config.decorations[id];
-            if (id === 'tape-top') this.ctx.drawImage(decoImg, (POLAROID_WIDTH - d.w) / 2, -20, d.w, d.h);
-            if (id === 'clip-top-right') this.ctx.drawImage(decoImg, POLAROID_WIDTH - d.w - PADDING, -30, d.w, d.h);
-            if (id === 'flower-bottom-left') this.ctx.drawImage(decoImg, -30, POLAROID_HEIGHT - TEXT_AREA_HEIGHT, d.w, d.h);
+            
+
+            if (id === 'ribbon-decoration') {
+                const x = 0; // Position at top-left corner of the polaroid
+                const y = 0; // Position at top-left corner of the polaroid
+                this.ctx.drawImage(decoImg, x, y, d.w, d.h);
+            } else if (id === 'heart-decoration') {
+                console.log("Drawing heart decoration:", decoImg, "at", POLAROID_WIDTH - d.w, 0, d.w, d.h);
+                const x = POLAROID_WIDTH - d.w; // Position at top-right corner of the polaroid
+                const y = 0; // Position at top-right corner of the polaroid
+                this.ctx.drawImage(decoImg, x, y, d.w, d.h);
+              
+}
+            }
         }
 
         // D. Draw Text
@@ -146,7 +161,11 @@ class PolaroidMaker {
         this.config = {
             filters: { 'none': { name: 'None', value: 'none' }, 'vintage': { name: 'Vintage', value: 'sepia(0.35) contrast(1.1) brightness(1.05) saturate(1.2)' }, 'mono': { name: 'Mono', value: 'grayscale(1)' }, 'retro': { name: 'Retro', value: 'sepia(0.6) contrast(0.9) brightness(1.1)' }, 'gloomy': { name: 'Gloomy', value: 'contrast(1.2) brightness(0.9) saturate(0.8)' }, 'mellow': { name: 'Mellow', value: 'brightness(1.1) contrast(0.95) saturate(0.9)' }, 'dreamy': { name: 'Dreamy', value: 'saturate(1.4) contrast(0.9) brightness(1.1) blur(0.5px)' }, 'lomo': { name: 'Lomo', value: 'saturate(1.5) contrast(1.2)' }, },
             fonts: { 'Caveat': 'Cute', 'Patrick Hand': 'Neat', 'Rock Salt': 'Bold', 'Special Elite': 'Typed' },
-            decorations: { 'tape-top': { name: 'Tape', url: 'https://ik.imagekit.io/dharsh/97120_Photoroom.png-Photoroom_YkUveAKY-.png', w: 100, h: 45 }, 'clip-top-right': { name: 'Clip', url: 'https://ik.imagekit.io/dharsh/97079_Photoroom.png-Photoroom_a-8qFfcdw.png', w: 50, h: 65 }, 'flower-bottom-left': { name: 'Flower', url: 'https://ik.imagekit.io/dharsh/My_project__5___1__S7e-jM0o7.png', w: 80, h: 80 }, }
+            decorations: {
+                'ribbon-decoration': { name: 'Ribbon', url: 'assets/ribbon.png', w: 200, h: 100 },
+                'heart-decoration': { name: 'Heart', url: 'assets/heart.png', w: 150, h: 150 }
+
+            }
         };
         this.canvasDrawer = new CanvasDrawer(this.config);
     }
@@ -169,7 +188,8 @@ class PolaroidMaker {
             isStreaming: false,
             isTimerActive: false,
             facingMode: 'user',
-            stream: null
+            stream: null,
+            videoDeviceCount: 0
         };
     }
     
@@ -177,7 +197,7 @@ class PolaroidMaker {
 
     _initUI() {
         // Populate Filter Options
-        const filterPreviewUrl = 'https://images.unsplash.com/photo-1579546929518-9e396f3a8034?w=100';
+        const filterPreviewUrl = 'assets/img.jpg'; // Use a sample image for filter previews
         this.els.filterOptions.innerHTML = Object.entries(this.config.filters).map(([id, { name, value }]) => `
             <div class="grid-option filter-option" data-filter="${id}">
                 <div class="filter-preview" style="background-image: url('${filterPreviewUrl}'); filter: ${value};"></div>
@@ -192,9 +212,10 @@ class PolaroidMaker {
             </div>`).join('');
 
         // Populate Decoration Options
-        this.els.decorationOptions.innerHTML = Object.entries(this.config.decorations).map(([id, { url }]) => `
+        this.els.decorationOptions.innerHTML = Object.entries(this.config.decorations).map(([id, { url, name }]) => `
              <div class="grid-option decoration-option" data-decoration="${id}">
-                <div class="decoration-preview" style="background-image: url('${url}')"></div>
+                <div class="decoration-preview" style="background-image: url('${url}'); width: 40px; height: 40px; background-size: contain; background-repeat: no-repeat;"></div>
+                <div class="option-name">${name}</div>
              </div>`).join('');
         
         // Set initial active options
@@ -203,10 +224,12 @@ class PolaroidMaker {
     }
     
     _updateUI() {
+        const hasImages = this.state.capturedImages.length > 0;
         this.els.captureBtn.disabled = !this.state.isStreaming;
         this.els.startTimerBtn.disabled = !this.state.isStreaming;
-        this.els.downloadBtn.disabled = this.state.capturedImages.length === 0;
-        this.els.switchCameraBtn.disabled = !this.state.isStreaming || this.videoDeviceCount <= 1;
+        this.els.downloadBtn.disabled = !hasImages || this.state.isTimerActive;
+        this.els.switchCameraBtn.disabled = !this.state.isStreaming || this.state.videoDeviceCount <= 1;
+        this.els.emptyState.classList.toggle('hidden', hasImages);
     }
     
     // --- EVENT BINDING ---
@@ -266,6 +289,7 @@ class PolaroidMaker {
         this._handleOptionSelection(this.els.decorationOptions, '.decoration-option', el => {
             const decoId = el.dataset.decoration;
             this.state.decorations.has(decoId) ? this.state.decorations.delete(decoId) : this.state.decorations.add(decoId);
+            console.log("Current decorations state:", this.state.decorations);
             this.renderPolaroid();
         });
     }
@@ -283,7 +307,7 @@ class PolaroidMaker {
             this.els.startCameraBtn.onclick = () => this.stopCamera();
 
             const devices = await navigator.mediaDevices.enumerateDevices();
-            this.videoDeviceCount = devices.filter(d => d.kind === 'videoinput').length;
+            this.state.videoDeviceCount = devices.filter(d => d.kind === 'videoinput').length;
         } catch (err) {
             console.error("Camera Error:", err);
             this.els.cameraOverlay.classList.remove('hidden');
@@ -365,14 +389,21 @@ class PolaroidMaker {
         const filterClass = `filter-${this.state.filter}`;
         
         const decorationHTML = [...this.state.decorations].map(id => {
-            const placeholderURL = this.config.decorations[id].url;
-            return `<div class="decoration deco-${id}" style="background-image: url('${placeholderURL}')"></div>`;
+            console.log("Generating decoration HTML for ID:", id);
+            const deco = this.config.decorations[id];
+            let style = `background-image: url('${deco.url}'); width: ${deco.w}px; height: ${deco.h}px; background-size: contain; background-repeat: no-repeat; z-index: 10; position: absolute;`;
+            if (id === 'ribbon-decoration') {
+                style += `top: 0; left: 0;`;
+            } else if (id === 'heart-decoration') {
+                style += `top: 0; right: 0;`;
+            }
+            return `<div class="decoration deco-${id}" style="${style}"></div>`;
         }).join('');
 
         let html = '';
         if (this.state.layout === 'single') {
             html = `<div class="polaroid-output-area">
-                <div id="polaroid-single" class="polaroid">
+                <div id="polaroid-single" class="polaroid" style="position: relative;">
                     ${decorationHTML}
                     <div class="polaroid-image-wrapper">
                         <img src="${imagesToRender[0]}" class="polaroid-image ${filterClass}" alt="Captured photo">
@@ -389,7 +420,7 @@ class PolaroidMaker {
                 const showDecorations = i === 0; // Only show on first for grids
 
                 html += `
-                <div class="polaroid">
+                <div class="polaroid" style="position: relative;">
                     ${showDecorations ? decorationHTML : ''}
                     <div class="polaroid-image-wrapper">
                         <img src="${imgSrc}" class="polaroid-image ${filterClass}" alt="Captured photo ${i + 1}">
