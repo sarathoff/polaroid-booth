@@ -1,9 +1,3 @@
-// app.js
-
-/**
- * A helper class to encapsulate all high-resolution canvas drawing logic.
- * This separates the complex drawing from the UI interaction logic.
- */
 class CanvasDrawer {
     constructor(config) {
         this.config = config;
@@ -24,7 +18,7 @@ class CanvasDrawer {
         const imagePromises = imageSources.map(src => {
             const img = new Image();
             img.src = src;
-            return img.decode().then(() => img);
+            return img.decode().then(() => img).catch(e => console.error("Image load error:", e));
         });
 
         const decoPromises = [...activeDecorations].map(id => {
@@ -36,11 +30,9 @@ class CanvasDrawer {
         });
 
         const [loadedImages, loadedDecos] = await Promise.all([
-            Promise.all(imagePromises),
+            Promise.all(imagePromises.filter(p => p)),
             Promise.all(decoPromises.filter(p => p))
         ]);
-        console.log("Loaded decorations (decoMap):");
-        loadedDecos.forEach(d => console.log(`  ID: ${d.id}, Image: ${d.img.src}`));
 
         const decoMap = new Map(loadedDecos.map(d => [d.id, d.img]));
         return { loadedImages, decoMap };
@@ -57,7 +49,6 @@ class CanvasDrawer {
     }
 
     _drawSinglePolaroid(img, text, decoMap, filterValue, font) {
-        console.log("Entering _drawSinglePolaroid. decoMap:", decoMap);
         const { PADDING, IMG_SIZE, TEXT_AREA_HEIGHT, POLAROID_WIDTH, POLAROID_HEIGHT, FONT_SIZE } = this.CONSTANTS;
         const polaroidBg = getComputedStyle(document.documentElement).getPropertyValue('--polaroid-bg').trim();
 
@@ -81,22 +72,8 @@ class CanvasDrawer {
 
         // C. Draw Decorations
         for (const [id, decoImg] of decoMap.entries()) {
-            console.log("Drawing decoration in canvas:", id, decoImg);
             const d = this.config.decorations[id];
-            
-
-            if (id === 'ribbon-decoration') {
-                const x = 0; // Position at top-left corner of the polaroid
-                const y = 0; // Position at top-left corner of the polaroid
-                this.ctx.drawImage(decoImg, x, y, d.w, d.h);
-            } else if (id === 'heart-decoration') {
-                console.log("Drawing heart decoration:", decoImg, "at", POLAROID_WIDTH - d.w, 0, d.w, d.h);
-                const x = POLAROID_WIDTH - d.w; // Position at top-right corner of the polaroid
-                const y = 0; // Position at top-right corner of the polaroid
-                this.ctx.drawImage(decoImg, x, y, d.w, d.h);
-              
-}
-            }
+            this.ctx.drawImage(decoImg, d.x, d.y, d.w, d.h);
         }
 
         // D. Draw Text
@@ -112,9 +89,10 @@ class CanvasDrawer {
     async createDownloadableCanvas(options) {
         const { layout, images, text, filter, font, decorations } = options;
         const { loadedImages, decoMap } = await this._loadAssets(images, decorations);
+        if (loadedImages.length === 0) throw new Error("No images to draw.");
+
         const { POLAROID_WIDTH, POLAROID_HEIGHT, GRID_GAP } = this.CONSTANTS;
         
-        // Calculate canvas dimensions based on layout
         let cols = 1, rows = 1;
         if (layout === 'grid-2x2') { cols = 2; rows = 2; }
         else if (layout === 'grid-strip' || layout === 'grid-4x1') { rows = 4; }
@@ -125,11 +103,9 @@ class CanvasDrawer {
 
         const filterValue = this.config.filters[filter].value;
         
-        // Loop and draw each polaroid
         for (let i = 0; i < loadedImages.length; i++) {
             const isLastImage = i === loadedImages.length - 1;
             const currentText = isLastImage ? text : '';
-            // For grids, decorations only on the first polaroid for simplicity
             const currentDecos = (layout === 'single' || i === 0) ? decoMap : new Map();
 
             const row = Math.floor(i / cols);
@@ -155,6 +131,7 @@ class PolaroidMaker {
         this._initState();
         this._initUI();
         this._bindEvents();
+        this._updateUI();
     }
 
     _initConfig() {
@@ -162,9 +139,8 @@ class PolaroidMaker {
             filters: { 'none': { name: 'None', value: 'none' }, 'vintage': { name: 'Vintage', value: 'sepia(0.35) contrast(1.1) brightness(1.05) saturate(1.2)' }, 'mono': { name: 'Mono', value: 'grayscale(1)' }, 'retro': { name: 'Retro', value: 'sepia(0.6) contrast(0.9) brightness(1.1)' }, 'gloomy': { name: 'Gloomy', value: 'contrast(1.2) brightness(0.9) saturate(0.8)' }, 'mellow': { name: 'Mellow', value: 'brightness(1.1) contrast(0.95) saturate(0.9)' }, 'dreamy': { name: 'Dreamy', value: 'saturate(1.4) contrast(0.9) brightness(1.1) blur(0.5px)' }, 'lomo': { name: 'Lomo', value: 'saturate(1.5) contrast(1.2)' }, },
             fonts: { 'Caveat': 'Cute', 'Patrick Hand': 'Neat', 'Rock Salt': 'Bold', 'Special Elite': 'Typed' },
             decorations: {
-                'ribbon-decoration': { name: 'Ribbon', url: 'assets/ribbon.png', w: 200, h: 100 },
-                'heart-decoration': { name: 'Heart', url: 'assets/heart.png', w: 150, h: 150 }
-
+                'ribbon-decoration': { name: 'Ribbon', url: 'assets/ribbon.png', w: 200, h: 100, x: 0, y: 0 },
+                'heart-decoration': { name: 'Heart', url: 'assets/heart.png', w: 150, h: 150, x: 870, y: 0 }
             }
         };
         this.canvasDrawer = new CanvasDrawer(this.config);
@@ -172,7 +148,7 @@ class PolaroidMaker {
     
     _initDOM() {
         this.els = {
-            video: document.getElementById('videoElement'), canvas: document.getElementById('canvas'), startCameraBtn: document.getElementById('startCameraBtn'), switchCameraBtn: document.getElementById('switchCameraBtn'), captureBtn: document.getElementById('captureBtn'), uploadBtn: document.getElementById('uploadBtn'), fileInput: document.getElementById('fileInput'), downloadBtn: document.getElementById('downloadBtn'), polaroidContainer: document.getElementById('polaroidContainer'), polaroidText: document.getElementById('polaroidText'), flashEffect: document.getElementById('flashEffect'), cameraOverlay: document.getElementById('cameraOverlay'), emptyState: document.getElementById('emptyState'), layoutOptionsContainer: document.getElementById('layoutOptions'), startTimerBtn: document.getElementById('startTimerBtn'), timerDelay: document.getElementById('timerDelay'), photoCount: document.getElementById('photoCount'), timerStatus: document.getElementById('timerStatus'), countdownOverlay: document.getElementById('countdownOverlay'), countdownNumber: document.getElementById('countdownNumber'),
+            video: document.getElementById('videoElement'), canvas: document.getElementById('canvas'), startCameraBtn: document.getElementById('startCameraBtn'), switchCameraBtn: document.getElementById('switchCameraBtn'), captureBtn: document.getElementById('captureBtn'), uploadBtn: document.getElementById('uploadBtn'), fileInput: document.getElementById('fileInput'), downloadBtn: document.getElementById('downloadBtn'), polaroidContainer: document.getElementById('polaroidContainer'), polaroidText: document.getElementById('polaroidText'), flashEffect: document.getElementById('flashEffect'), cameraOverlay: document.getElementById('cameraOverlay'), emptyState: document.getElementById('emptyState'), layoutOptions: document.getElementById('layoutOptions'), startTimerBtn: document.getElementById('startTimerBtn'), timerDelay: document.getElementById('timerDelay'), photoCount: document.getElementById('photoCount'), timerStatus: document.getElementById('timerStatus'), countdownOverlay: document.getElementById('countdownOverlay'), countdownNumber: document.getElementById('countdownNumber'),
             filterOptions: document.getElementById('filterOptions'), fontOptions: document.getElementById('fontOptions'), decorationOptions: document.getElementById('decorationOptions'),
             downloadBtnText: document.querySelector('#downloadBtn .btn-text'),
             downloadBtnSpinner: document.querySelector('#downloadBtn .spinner'),
@@ -189,14 +165,11 @@ class PolaroidMaker {
             isTimerActive: false,
             facingMode: 'user',
             stream: null,
-            videoDeviceCount: 0
+            videoDeviceCount: 0,
         };
     }
     
-    // --- UI INITIALIZATION & UPDATES ---
-
     _initUI() {
-        // Populate Filter Options
         const filterPreviewUrl = 'assets/img.jpg'; // Use a sample image for filter previews
         this.els.filterOptions.innerHTML = Object.entries(this.config.filters).map(([id, { name, value }]) => `
             <div class="grid-option filter-option" data-filter="${id}">
@@ -204,45 +177,40 @@ class PolaroidMaker {
                 <div class="option-name">${name}</div>
             </div>`).join('');
 
-        // Populate Font Options
         this.els.fontOptions.innerHTML = Object.entries(this.config.fonts).map(([font, name]) => `
             <div class="grid-option font-option" data-font="${font}">
                 <div class="font-preview font-${font.replace(/\s/g, '-')}">Ag</div>
                 <div class="option-name">${name}</div>
             </div>`).join('');
 
-        // Populate Decoration Options
-        this.els.decorationOptions.innerHTML = Object.entries(this.config.decorations).map(([id, { url, name }]) => `
+        this.els.decorationOptions.innerHTML = Object.entries(this.config.decorations).map(([id, { url, name, w, h }]) => `
              <div class="grid-option decoration-option" data-decoration="${id}">
-                <div class="decoration-preview" style="background-image: url('${url}'); width: 40px; height: 40px; background-size: contain; background-repeat: no-repeat;"></div>
+                <div class="decoration-preview" style="background-image: url('${url}'); width: ${w/4}px; height: ${h/4}px; background-size: contain; background-repeat: no-repeat; background-position: center;"></div>
                 <div class="option-name">${name}</div>
              </div>`).join('');
         
-        // Set initial active options
+        this._setActiveOption(this.els.layoutOptions, `[data-layout="${this.state.layout}"]`);
         this._setActiveOption(this.els.filterOptions, `[data-filter="${this.state.filter}"]`);
         this._setActiveOption(this.els.fontOptions, `[data-font="${this.state.font}"]`);
+        this.els.polaroidText.style.fontFamily = `'${this.state.font}', cursive`;
     }
     
     _updateUI() {
         const hasImages = this.state.capturedImages.length > 0;
-        this.els.captureBtn.disabled = !this.state.isStreaming;
-        this.els.startTimerBtn.disabled = !this.state.isStreaming;
+        this.els.captureBtn.disabled = !this.state.isStreaming || this.state.isTimerActive;
+        this.els.startTimerBtn.disabled = !this.state.isStreaming || this.state.isTimerActive;
         this.els.downloadBtn.disabled = !hasImages || this.state.isTimerActive;
-        this.els.switchCameraBtn.disabled = !this.state.isStreaming || this.state.videoDeviceCount <= 1;
+        this.els.switchCameraBtn.disabled = !this.state.isStreaming || this.state.isTimerActive || this.state.videoDeviceCount <= 1;
         this.els.emptyState.classList.toggle('hidden', hasImages);
     }
     
-    // --- EVENT BINDING ---
-
     _handleOptionSelection(container, selector, callback) {
         container.addEventListener('click', (e) => {
             const option = e.target.closest(selector);
             if (!option) return;
-
-            // For toggleable options like decorations
             if (option.classList.contains('decoration-option')) {
                 option.classList.toggle('active');
-            } else { // For single-select options
+            } else {
                 this._setActiveOption(container, option);
             }
             callback(option);
@@ -252,7 +220,6 @@ class PolaroidMaker {
     _setActiveOption(container, selector) {
         const option = typeof selector === 'string' ? container.querySelector(selector) : selector;
         if (!option) return;
-        // Remove active class from siblings
         [...container.children].forEach(child => child.classList.remove('active'));
         option.classList.add('active');
     }
@@ -267,7 +234,7 @@ class PolaroidMaker {
         this.els.startTimerBtn.addEventListener('click', () => this.startTimer());
         this.els.switchCameraBtn.addEventListener('click', () => this.switchCamera());
         
-        this._handleOptionSelection(this.els.layoutOptionsContainer, '.layout-option', el => {
+        this._handleOptionSelection(this.els.layoutOptions, '.layout-option', el => {
             this.state.layout = el.dataset.layout;
             const maxPhotos = this._getMaxImagesForLayout();
             this.els.photoCount.max = maxPhotos;
@@ -289,23 +256,21 @@ class PolaroidMaker {
         this._handleOptionSelection(this.els.decorationOptions, '.decoration-option', el => {
             const decoId = el.dataset.decoration;
             this.state.decorations.has(decoId) ? this.state.decorations.delete(decoId) : this.state.decorations.add(decoId);
-            console.log("Current decorations state:", this.state.decorations);
             this.renderPolaroid();
         });
     }
     
-    // --- CORE FUNCTIONALITY ---
-
     async startCamera() {
+        if (this.state.isStreaming) return this.stopCamera();
+
         if (this.state.stream) this.state.stream.getTracks().forEach(track => track.stop());
         try {
             this.state.stream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1920 }, height: { ideal: 1080 }, facingMode: this.state.facingMode } });
             this.els.video.srcObject = this.state.stream;
             this.state.isStreaming = true;
             this.els.cameraOverlay.classList.add('hidden');
-            this.els.startCameraBtn.innerHTML = `... Stop Camera`;
-            this.els.startCameraBtn.onclick = () => this.stopCamera();
-
+            this.els.startCameraBtn.innerHTML = `Stop Camera`;
+            
             const devices = await navigator.mediaDevices.enumerateDevices();
             this.state.videoDeviceCount = devices.filter(d => d.kind === 'videoinput').length;
         } catch (err) {
@@ -323,8 +288,7 @@ class PolaroidMaker {
         this.els.video.srcObject = null;
         this.els.cameraOverlay.classList.remove('hidden');
         this.els.cameraOverlay.textContent = 'Click "Start Camera" to begin';
-        this.els.startCameraBtn.innerHTML = `<svg aria-hidden="true" ...>...</svg>Start Camera`; // Restore original SVG
-        this.els.startCameraBtn.onclick = () => this.startCamera();
+        this.els.startCameraBtn.innerHTML = `Start Camera`;
         this._updateUI();
     }
 
@@ -339,7 +303,6 @@ class PolaroidMaker {
         this.els.canvas.width = this.els.video.videoWidth; 
         this.els.canvas.height = this.els.video.videoHeight;
         
-        // Mirror the image if it's from the user-facing camera
         if (this.state.facingMode === 'user') { 
             this.ctx.translate(this.els.canvas.width, 0); 
             this.ctx.scale(-1, 1); 
@@ -348,62 +311,58 @@ class PolaroidMaker {
         this.ctx.drawImage(this.els.video, 0, 0, this.els.canvas.width, this.els.canvas.height);
         this.addCapturedImage(this.els.canvas.toDataURL('image/jpeg', 0.95));
         
-        // Reset transform for next operation
         this.ctx.setTransform(1, 0, 0, 1, 0, 0); 
     }
 
     handleFileUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => this.addCapturedImage(e.target.result);
-        reader.readAsDataURL(file);
+        const files = event.target.files;
+        if (!files.length) return;
+        Array.from(files).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = (e) => this.addCapturedImage(e.target.result);
+            reader.readAsDataURL(file);
+        });
+        event.target.value = ''; // Reset for same-file uploads
     }
     
     addCapturedImage(imageData) {
         const maxImages = this._getMaxImagesForLayout();
-        this.state.capturedImages.push(imageData);
-        while (this.state.capturedImages.length > maxImages) {
+        if (this.state.capturedImages.length >= maxImages) {
             this.state.capturedImages.shift();
         }
+        this.state.capturedImages.push(imageData);
         this.renderPolaroid();
         this._updateUI();
     }
 
     _getMaxImagesForLayout() {
-        return this.state.layout === 'single' ? 1 : 4;
+        if (this.state.layout === 'single') return 1;
+        if (this.state.layout === 'grid-2x2') return 4;
+        if (this.state.layout === 'grid-strip') return 4;
+        return 1;
     }
     
-    // --- RENDERING & DOWNLOAD ---
-
     renderPolaroid() {
         if (this.state.capturedImages.length === 0) {
             this.els.polaroidContainer.innerHTML = '';
-            this.els.emptyState.classList.remove('hidden');
+            this._updateUI();
             return;
         }
-        this.els.emptyState.classList.add('hidden');
-
+        
         const text = this.els.polaroidText.value;
         const imagesToRender = this.state.capturedImages.slice(-this._getMaxImagesForLayout());
         const filterClass = `filter-${this.state.filter}`;
         
         const decorationHTML = [...this.state.decorations].map(id => {
-            console.log("Generating decoration HTML for ID:", id);
             const deco = this.config.decorations[id];
-            let style = `background-image: url('${deco.url}'); width: ${deco.w}px; height: ${deco.h}px; background-size: contain; background-repeat: no-repeat; z-index: 10; position: absolute;`;
-            if (id === 'ribbon-decoration') {
-                style += `top: 0; left: 0;`;
-            } else if (id === 'heart-decoration') {
-                style += `top: 0; right: 0;`;
-            }
-            return `<div class="decoration deco-${id}" style="${style}"></div>`;
+            const style = `background-image: url('${deco.url}'); width: ${deco.w / 4}px; height: ${deco.h / 4}px; background-size: contain; background-repeat: no-repeat; z-index: 10; position: absolute; top: ${deco.y / 4}px; left: ${deco.x / 4}px;`;
+            return `<div class="decoration" style="${style}"></div>`;
         }).join('');
 
         let html = '';
         if (this.state.layout === 'single') {
             html = `<div class="polaroid-output-area">
-                <div id="polaroid-single" class="polaroid" style="position: relative;">
+                <div id="polaroid-single" class="polaroid">
                     ${decorationHTML}
                     <div class="polaroid-image-wrapper">
                         <img src="${imagesToRender[0]}" class="polaroid-image ${filterClass}" alt="Captured photo">
@@ -417,10 +376,10 @@ class PolaroidMaker {
             for (let i = 0; i < totalSlots; i++) {
                 const imgSrc = imagesToRender[i] || 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
                 const isTextVisible = i === (imagesToRender.length - 1);
-                const showDecorations = i === 0; // Only show on first for grids
+                const showDecorations = i === 0;
 
                 html += `
-                <div class="polaroid" style="position: relative;">
+                <div class="polaroid">
                     ${showDecorations ? decorationHTML : ''}
                     <div class="polaroid-image-wrapper">
                         <img src="${imgSrc}" class="polaroid-image ${filterClass}" alt="Captured photo ${i + 1}">
@@ -431,6 +390,7 @@ class PolaroidMaker {
             html += `</div>`;
         }
         this.els.polaroidContainer.innerHTML = html;
+        this._updateUI();
     }
 
     _setDownloadButtonState(isLoading) {
@@ -452,10 +412,10 @@ class PolaroidMaker {
             });
 
             const link = document.createElement('a');
-            link.download = `polaroid-${this.state.layout}-${Date.now()}.png`;
+            link.download = `photobooth-${this.state.layout}-${Date.now()}.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
-        } catch (error) {
+        } catch (error) { 
             console.error("Download failed:", error);
             alert("Sorry, the image could not be created. Please check the console for errors and try again.");
         } finally {
@@ -463,11 +423,63 @@ class PolaroidMaker {
         }
     }
     
-    // --- EFFECTS & TIMERS ---
-    
-    _triggerFlash() { this.els.flashEffect.classList.add('active'); setTimeout(() => this.els.flashEffect.classList.remove('active'), 300); }
-    // ... other methods like startTimer, stopTimer, showCountdown, updateTimerStatus remain largely the same ...
-    // ... just be sure to use `this.state` for properties like `isTimerActive` and `isStreaming`
+    startTimer() {
+        if (!this.state.isStreaming || this.state.isTimerActive) return;
+
+        this.state.isTimerActive = true;
+        this._updateUI();
+        this.state.capturedImages = []; // Clear previous images for a new sequence
+        this.renderPolaroid();
+        
+        const photosToTake = parseInt(this.els.photoCount.value) || 4;
+        const delay = parseInt(this.els.timerDelay.value) || 3;
+        let photosTaken = 0;
+
+        const sequence = () => {
+            if (photosTaken >= photosToTake) {
+                this.stopTimer();
+                return;
+            }
+
+            this.showCountdown(delay, photosTaken + 1, () => {
+                this.capturePhoto();
+                photosTaken++;
+                setTimeout(sequence, 1000); // 1s pause between captures
+            });
+        };
+        
+        this.els.timerStatus.textContent = `Sequence in progress...`;
+        sequence();
+    }
+
+    stopTimer() {
+        this.state.isTimerActive = false;
+        this.els.timerStatus.textContent = ``;
+        this._updateUI();
+    }
+
+    showCountdown(seconds, photoNum, onComplete) {
+        this.els.countdownOverlay.classList.add('is-active');
+        let count = seconds;
+        const tick = () => {
+            this.els.countdownNumber.textContent = count > 0 ? count : `📸`;
+            if (count > 0) {
+                count--;
+                setTimeout(tick, 1000);
+            } else {
+                setTimeout(() => {
+                    this.els.countdownOverlay.classList.remove('is-active');
+                    onComplete();
+                }, 800);
+            }
+        };
+        tick();
+    }
+
+    _triggerFlash() { 
+        this.els.flashEffect.classList.add('active'); 
+        setTimeout(() => this.els.flashEffect.classList.remove('active'), 300); 
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => new PolaroidMaker());
