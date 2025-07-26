@@ -1,10 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+      <!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-R5GM0GFGRK"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-R5GM0GFGRK');
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Create nostalgic polaroid photos with filters, decorations, and captions in your browser.">
-    <title>The Timeless Photo Booth</title>
+    <title>Polaroid Booth</title>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -174,784 +183,65 @@
             margin-bottom: 1rem;
             color: var(--color-text);
         }
-
-        @media (max-width: 768px) {
-            .landing-nav .l-container {
-                flex-direction: column;
-                gap: 1rem;
-            }
-
-            .nav-links {
-                flex-direction: column;
-                align-items: center;
-            }
-        }
-         
-
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: var(--font-sans);
-            background-color: var(--color-bg);
-            color: var(--color-text);
-            background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="4" height="4" viewBox="0 0 4 4"%3E%3Cpath fill="%239C92AC" fill-opacity="0.03" d="M1 3h1v1H1V3zm2-2h1v1H3V1z"%3E%3C/path%3E%3C/svg%3E');
-            line-height: 1.6;
-            min-height: 100vh;
-            -webkit-font-smoothing: antialiased;
-            background-size: 8px 8px;
-            background-position: center center;
-        }
-
-        .landing-nav {
-            padding: 2rem 0;
-            position: relative;
-            z-index: 10;
-            background-color: rgba(255, 255, 255, 0.9);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            backdrop-filter: blur(5px);
-        }
-
-        /* LANDING PAGE STYLES */
-        .landing-page {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .landing-page::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 50%;
-            height: 100%;
-            background: var(--gradient-hero);
-            opacity: 0.1;
-            transform: skewX(-15deg) translateX(50%);
-        }
-
-        .landing-nav {
-            padding: 2rem 0;
-            position: relative;
-            z-index: 10;
-        }
-
-        .landing-nav .l-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .landing-logo {
-            font-family: var(--font-display);
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: var(--color-primary);
-            text-decoration: none;
-            position: relative;
-        }
-
-        .landing-logo::after {
-            content: '📸';
-            margin-left: 0.5rem;
-            font-size: 1.2rem;
-        }
-
-        .nav-links {
-            list-style: none;
-            display: flex;
-            gap: 1.5rem;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: var(--color-text);
-            font-weight: 500;
-            transition: color 0.2s ease;
-        }
-
-        .nav-links a:hover {
-            color: var(--color-primary);
-        }
-
-        footer {
-            padding: 2rem 0;
-            text-align: center;
-            color: var(--color-text-muted);
-            font-size: 0.9rem;
-        }
-
-        footer a {
-            color: var(--color-primary);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        footer a:hover {
-            text-decoration: underline;
-        }
-
-        /* Additional styles for content pages */
-        .content-section {
-            padding: 4rem 0;
-            max-width: 800px;
-            margin: 0 auto;
-            background: var(--color-card-bg);
-            border-radius: var(--radius-large);
-            box-shadow: var(--shadow-medium);
-            padding: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .content-section h1 {
-            font-family: var(--font-display);
-            font-size: 2.5rem;
-            margin-bottom: 1.5rem;
-            color: var(--color-primary);
-            text-align: center;
-        }
-
-        .content-section h2 {
-            font-family: var(--font-display);
-            font-size: 1.8rem;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-            color: var(--color-primary-dark);
-        }
-
-        .content-section p {
-            margin-bottom: 1rem;
-            color: var(--color-text);
+        
+        .mobile-nav-toggle {
+            display: none;
         }
 
         @media (max-width: 768px) {
             .landing-nav .l-container {
-                flex-direction: column;
-                gap: 1rem;
+                flex-direction: row;
+                justify-content: space-between;
+            }
+
+            .mobile-nav-toggle {
+                display: block;
+                background: transparent;
+                border: 0;
+                cursor: pointer;
+            }
+
+            .icon-hamburger {
+                display: block;
+            }
+
+            .icon-close {
+                display: none;
             }
 
             .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background: var(--color-card-bg);
+                padding: 1rem 0;
+                box-shadow: var(--shadow-medium);
+            }
+
+            .nav-links.active {
+                display: flex;
                 flex-direction: column;
                 align-items: center;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .landing-nav .l-container {
-                flex-direction: column;
                 gap: 1rem;
             }
 
-            .nav-links {
-                flex-direction: column;
-                align-items: center;
+            .nav-links.active a {
+                color: var(--color-text);
             }
-        }
 
-        .nav-links {
-            list-style: none;
-            display: flex;
-            gap: 1.5rem;
-        }
+            .nav-links.active a:hover {
+                color: var(--color-primary);
+            }
 
-        .nav-links a {
-            text-decoration: none;
-            color: var(--color-text);
-            font-weight: 500;
-            transition: color 0.2s ease;
-        }
+            .mobile-nav-toggle[aria-expanded="true"] .icon-hamburger {
+                display: none;
+            }
 
-        .nav-links a:hover {
-            color: var(--color-primary);
-        }
-
-        footer {
-            padding: 2rem 0;
-            text-align: center;
-            color: var(--color-text-muted);
-            font-size: 0.9rem;
-        }
-
-        footer a {
-            color: var(--color-primary);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        footer a:hover {
-            text-decoration: underline;
-        }
-
-        /* Additional styles for content pages */
-        .content-section {
-            padding: 4rem 0;
-            max-width: 800px;
-            margin: 0 auto;
-            background: var(--color-card-bg);
-            border-radius: var(--radius-large);
-            box-shadow: var(--shadow-medium);
-            padding: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .content-section h1 {
-            font-family: var(--font-display);
-            font-size: 2.5rem;
-            margin-bottom: 1.5rem;
-            color: var(--color-primary);
-            text-align: center;
-        }
-
-        .content-section h2 {
-            font-family: var(--font-display);
-            font-size: 1.8rem;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-            color: var(--color-primary-dark);
-        }
-
-        .content-section p {
-            margin-bottom: 1rem;
-            color: var(--color-text);
-        }
-
-        .nav-links {
-            list-style: none;
-            display: flex;
-            gap: 1.5rem;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: var(--color-text);
-            font-weight: 500;
-            transition: color 0.2s ease;
-        }
-
-        .nav-links a:hover {
-            color: var(--color-primary);
-        }
-
-        footer {
-            padding: 2rem 0;
-            text-align: center;
-            color: var(--color-text-muted);
-            font-size: 0.9rem;
-        }
-
-        footer a {
-            color: var(--color-primary);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        footer a:hover {
-            text-decoration: underline;
-        }
-
-        /* Additional styles for content pages */
-        .content-section {
-            padding: 4rem 0;
-            max-width: 800px;
-            margin: 0 auto;
-            background: var(--color-card-bg);
-            border-radius: var(--radius-large);
-            box-shadow: var(--shadow-medium);
-            padding: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .content-section h1 {
-            font-family: var(--font-display);
-            font-size: 2.5rem;
-            margin-bottom: 1.5rem;
-            color: var(--color-primary);
-            text-align: center;
-        }
-
-        .content-section h2 {
-            font-family: var(--font-display);
-            font-size: 1.8rem;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-            color: var(--color-primary-dark);
-        }
-
-        .content-section p {
-            margin-bottom: 1rem;
-            color: var(--color-text);
-        }
-
-        .nav-links {
-            list-style: none;
-            display: flex;
-            gap: 1.5rem;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: var(--color-text);
-            font-weight: 500;
-            transition: color 0.2s ease;
-        }
-
-        .nav-links a:hover {
-            color: var(--color-primary);
-        }
-
-        footer {
-            padding: 2rem 0;
-            text-align: center;
-            color: var(--color-text-muted);
-            font-size: 0.9rem;
-        }
-
-        footer a {
-            color: var(--color-primary);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        footer a:hover {
-            text-decoration: underline;
-        }
-
-        /* Additional styles for content pages */
-        .content-section {
-            padding: 4rem 0;
-            max-width: 800px;
-            margin: 0 auto;
-            background: var(--color-card-bg);
-            border-radius: var(--radius-large);
-            box-shadow: var(--shadow-medium);
-            padding: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .content-section h1 {
-            font-family: var(--font-display);
-            font-size: 2.5rem;
-            margin-bottom: 1.5rem;
-            color: var(--color-primary);
-            text-align: center;
-        }
-
-        .content-section h2 {
-            font-family: var(--font-display);
-            font-size: 1.8rem;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-            color: var(--color-primary-dark);
-        }
-
-        .content-section p {
-            margin-bottom: 1rem;
-            color: var(--color-text);
-        }
-
-        .nav-links {
-            list-style: none;
-            display: flex;
-            gap: 1.5rem;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: var(--color-text);
-            font-weight: 500;
-            transition: color 0.2s ease;
-        }
-
-        .nav-links a:hover {
-            color: var(--color-primary);
-        }
-
-        footer {
-            padding: 2rem 0;
-            text-align: center;
-            color: var(--color-text-muted);
-            font-size: 0.9rem;
-        }
-
-        footer a {
-            color: var(--color-primary);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        footer a:hover {
-            text-decoration: underline;
-        }
-
-        /* Additional styles for content pages */
-        .content-section {
-            padding: 4rem 0;
-            max-width: 800px;
-            margin: 0 auto;
-            background: var(--color-card-bg);
-            border-radius: var(--radius-large);
-            box-shadow: var(--shadow-medium);
-            padding: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .content-section h1 {
-            font-family: var(--font-display);
-            font-size: 2.5rem;
-            margin-bottom: 1.5rem;
-            color: var(--color-primary);
-            text-align: center;
-        }
-
-        .content-section h2 {
-            font-family: var(--font-display);
-            font-size: 1.8rem;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-            color: var(--color-primary-dark);
-        }
-
-        .content-section p {
-            margin-bottom: 1rem;
-            color: var(--color-text);
-        }
-
-        .nav-links {
-            list-style: none;
-            display: flex;
-            gap: 1.5rem;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: var(--color-text);
-            font-weight: 500;
-            transition: color 0.2s ease;
-        }
-
-        .nav-links a:hover {
-            color: var(--color-primary);
-        }
-
-        footer {
-            padding: 2rem 0;
-            text-align: center;
-            color: var(--color-text-muted);
-            font-size: 0.9rem;
-        }
-
-        footer a {
-            color: var(--color-primary);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        footer a:hover {
-            text-decoration: underline;
-        }
-
-        .nav-links {
-            list-style: none;
-            display: flex;
-            gap: 1.5rem;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: var(--color-text);
-            font-weight: 500;
-            transition: color 0.2s ease;
-        }
-
-        .nav-links a:hover {
-            color: var(--color-primary);
-        }
-
-        footer {
-            padding: 2rem 0;
-            text-align: center;
-            color: var(--color-text-muted);
-            font-size: 0.9rem;
-        }
-
-        footer a {
-            color: var(--color-primary);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        footer a:hover {
-            text-decoration: underline;
-        }
-
-        /* Additional styles for content pages */
-        .content-section {
-            padding: 4rem 0;
-            max-width: 800px;
-            margin: 0 auto;
-            background: var(--color-card-bg);
-            border-radius: var(--radius-large);
-            box-shadow: var(--shadow-medium);
-            padding: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .content-section h1 {
-            font-family: var(--font-display);
-            font-size: 2.5rem;
-            margin-bottom: 1.5rem;
-            color: var(--color-primary);
-            text-align: center;
-        }
-
-        .content-section h2 {
-            font-family: var(--font-display);
-            font-size: 1.8rem;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-            color: var(--color-primary-dark);
-        }
-
-        .content-section p {
-            margin-bottom: 1rem;
-            color: var(--color-text);
-        }
-
-        .nav-links {
-            list-style: none;
-            display: flex;
-            gap: 1.5rem;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: var(--color-text);
-            font-weight: 500;
-            transition: color 0.2s ease;
-        }
-
-        .nav-links a:hover {
-            color: var(--color-primary);
-        }
-
-        footer {
-            padding: 2rem 0;
-            text-align: center;
-            color: var(--color-text-muted);
-            font-size: 0.9rem;
-        }
-
-        footer a {
-            color: var(--color-primary);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        footer a:hover {
-            text-decoration: underline;
-        }
-
-        /* Additional styles for content pages */
-        .content-section {
-            padding: 4rem 0;
-            max-width: 800px;
-            margin: 0 auto;
-            background: var(--color-card-bg);
-            border-radius: var(--radius-large);
-            box-shadow: var(--shadow-medium);
-            padding: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .content-section h1 {
-            font-family: var(--font-display);
-            font-size: 2.5rem;
-            margin-bottom: 1.5rem;
-            color: var(--color-primary);
-            text-align: center;
-        }
-
-        .content-section h2 {
-            font-family: var(--font-display);
-            font-size: 1.8rem;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-            color: var(--color-primary-dark);
-        }
-
-        .content-section p {
-            margin-bottom: 1rem;
-            color: var(--color-text);
-        }
-
-        .nav-links {
-            list-style: none;
-            display: flex;
-            gap: 1.5rem;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: var(--color-text);
-            font-weight: 500;
-            transition: color 0.2s ease;
-        }
-
-        .nav-links a:hover {
-            color: var(--color-primary);
-        }
-
-        footer {
-            padding: 2rem 0;
-            text-align: center;
-            color: var(--color-text-muted);
-            font-size: 0.9rem;
-        }
-
-        footer a {
-            color: var(--color-primary);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        footer a:hover {
-            text-decoration: underline;
-        }
-
-        /* Additional styles for content pages */
-        .content-section {
-            padding: 4rem 0;
-            max-width: 800px;
-            margin: 0 auto;
-            background: var(--color-card-bg);
-            border-radius: var(--radius-large);
-            box-shadow: var(--shadow-medium);
-            padding: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .content-section h1 {
-            font-family: var(--font-display);
-            font-size: 2.5rem;
-            margin-bottom: 1.5rem;
-            color: var(--color-primary);
-            text-align: center;
-        }
-
-        .content-section h2 {
-            font-family: var(--font-display);
-            font-size: 1.8rem;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-            color: var(--color-primary-dark);
-        }
-
-        .content-section p {
-            margin-bottom: 1rem;
-            color: var(--color-text);
-        }
-
-        /* Additional styles for content pages */
-        .content-section {
-            padding: 4rem 0;
-            max-width: 800px;
-            margin: 0 auto;
-            background: var(--color-card-bg);
-            border-radius: var(--radius-large);
-            box-shadow: var(--shadow-medium);
-            padding: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .content-section h1 {
-            font-family: var(--font-display);
-            font-size: 2.5rem;
-            margin-bottom: 1.5rem;
-            color: var(--color-primary);
-            text-align: center;
-        }
-
-        .content-section h2 {
-            font-family: var(--font-display);
-            font-size: 1.8rem;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-            color: var(--color-primary-dark);
-        }
-
-        .content-section p {
-            margin-bottom: 1rem;
-            color: var(--color-text);
-        }
-
-        .nav-links {
-            list-style: none;
-            display: flex;
-            gap: 1.5rem;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: var(--color-text);
-            font-weight: 500;
-            transition: color 0.2s ease;
-        }
-
-        .nav-links a:hover {
-            color: var(--color-primary);
-        }
-
-        footer {
-            padding: 2rem 0;
-            text-align: center;
-            color: var(--color-text-muted);
-            font-size: 0.9rem;
-        }
-
-        footer a {
-            color: var(--color-primary);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        footer a:hover {
-            text-decoration: underline;
-        }
-
-        .nav-links {
-            list-style: none;
-            display: flex;
-            gap: 1.5rem;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: var(--color-text);
-            font-weight: 500;
-            transition: color 0.2s ease;
-        }
-
-        .nav-links a:hover {
-            color: var(--color-primary);
-        }
-
-        footer {
-            padding: 2rem 0;
-            text-align: center;
-            color: var(--color-text-muted);
-            font-size: 0.9rem;
-        }
-
-        footer a {
-            color: var(--color-primary);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        footer a:hover {
-            text-decoration: underline;
+            .mobile-nav-toggle[aria-expanded="true"] .icon-close {
+                display: block;
+            }
         }
 
         .landing-hero {
@@ -1295,9 +585,14 @@
     <div id="landingPage" class="landing-page">
         <nav class="landing-nav">
             <div class="l-container">
-                <a href="landing.html" class="landing-logo">Polaroid Booth</a>
-                <ul class="nav-links">
-                    <li><a href="landing.html">Home</a></li>
+                <a href="tool.html" class="landing-logo">Polaroid Booth</a>
+                <button class="mobile-nav-toggle" aria-controls="nav-links" aria-expanded="false">
+                    <span class="sr-only">Menu</span>
+                    <svg class="icon-hamburger" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                    <svg class="icon-close" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+                <ul class="nav-links" id="nav-links">
+                    <li><a href="index.html">Home</a></li>
                     <li><a href="privacy-policy.html">Privacy Policy</a></li>
                     <li><a href="about.html">About</a></li>
                 </ul>
@@ -1310,7 +605,7 @@
                     <h1>Capture Memories in Vintage Style</h1>
                     <p>Transform your photos into beautiful polaroid keepsakes with nostalgic filters, decorative elements, and handwritten captions. Create timeless memories that feel like treasures from the past.</p>
                     <div class="hero-actions">
-                        <a class="c-btn c-btn--hero" id="startPhotoboothBtn" href="index.html">
+                        <a class="c-btn c-btn--hero" id="startPhotoboothBtn" href="tool.html">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
                             Start Creating
                         </a>
@@ -1377,7 +672,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
                     Back to Home
                 </a>
-                <a href="#" class="header__logo">The Timeless Photo Booth</a>
+                <a href="#" class="header__logo">Polaroid Booth</a>
             </div>
 
             <main>
@@ -1408,6 +703,15 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const mobileNavToggle = document.querySelector('.mobile-nav-toggle');
+            const navLinks = document.querySelector('.nav-links');
+
+            mobileNavToggle.addEventListener('click', () => {
+                const isExpanded = mobileNavToggle.getAttribute('aria-expanded') === 'true';
+                mobileNavToggle.setAttribute('aria-expanded', !isExpanded);
+                navLinks.classList.toggle('active');
+            });
+
             const polaroids = document.querySelectorAll('.sample-polaroid .sample-image');
             const images = [
                 'assets/1.png',
@@ -1435,43 +739,3 @@
     </script>
 </body>
 </html>
-                </div>
-            </div>
-        </section>
-
-       
-    </div>
-
-    <!-- PHOTOBOOTH APP -->
-    <div id="photoboothApp" class="photobooth-app">
-        <!-- Overlays -->
-        <div id="flashEffect" class="flash-effect"></div>
-        <div id="countdownOverlay" aria-live="polite">
-            <div id="countdownNumber"></div>
-        </div>
-
-        <div class="l-container">
-            <div class="app-nav">
-                <a href="#" class="back-btn" id="backToLanding">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-                    Back to Home
-                </a>
-                <a href="#" class="header__logo">The Timeless Photo Booth</a>
-            </div>
-
-            <main>
-                <!-- CONTROLS PANEL -->
-                <aside class="controls-panel">
-                    <div class="c-card">
-                        <!-- 1. CAMERA & CAPTURE -->
-                        <div class="c-card__section">
-                            <div class="c-video-container">
-                                <video id="videoElement" autoplay muted playsinline aria-label="Live camera feed"></video>
-                                <div id="cameraOverlay" role="alert">Click "Start Camera" to begin</div>
-                            </div>
-                            <button class="c-btn c-btn--primary" id="startCameraBtn">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
-                                Start Camera
-                            </button>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-                                <button class="c-btn c-btn--secondary" id="captureBtn" disabled>
