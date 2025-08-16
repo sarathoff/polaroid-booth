@@ -161,6 +161,15 @@
         .polaroid-grid-wrapper .polaroid-image-wrapper { margin-bottom: 0.75rem; }
         .polaroid-grid-wrapper .polaroid-text { font-size: 1.2rem; }
 
+        .polaroid-grid-wrapper.collage {
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            max-width: 450px;
+        }
+        .polaroid-grid-wrapper.collage .polaroid:nth-child(1) { grid-column: 1 / -1; }
+        .polaroid-grid-wrapper.collage .polaroid { transform: none !important; }
+
+
         .decoration { position: absolute; background-size: contain; background-repeat: no-repeat; pointer-events: none; z-index: 10; }
         .deco-ribbon-decoration { top: 0; left: 0; }
         .deco-heart-decoration { top: 0; right: 0; }
@@ -226,39 +235,9 @@
             <!-- CONTROLS PANEL -->
             <aside class="controls-panel">
                 <div class="c-card">
-                    <!-- 2. LAYOUT & TIMER -->
-                    <div class="c-card__section">
-                        <div class="c-card__section-title">Layout & Timer</div>
-                        <div id="layoutOptions" class="c-option-grid" role="radiogroup">
-                             <div class="grid-option layout-option" data-layout="single">
-                                <img src="assets/layout-single.svg" alt="Single Photo Layout" class="layout-icon">
-                                <span class="option-name">Single</span>
-                            </div>
-                            <div class="grid-option layout-option" data-layout="grid-2x2">
-                                <img src="assets/layout-grid.svg" alt="2x2 Grid Layout" class="layout-icon">
-                                <span class="option-name">2x2 Grid</span>
-                            </div>
-                            <div class="grid-option layout-option" data-layout="grid-strip">
-                                <img src="assets/layout-strip.svg" alt="Photo Strip Layout" class="layout-icon">
-                                <span class="option-name">Strip</span>
-                            </div>
-                        </div>
-                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                            <div class="c-input-group">
-                                <label class="c-label" for="timerDelay">Delay (s)</label>
-                                <input type="number" id="timerDelay" min="1" max="10" value="3" class="c-input">
-                            </div>
-                            <div class="c-input-group">
-                                <label class="c-label" for="photoCount">Photos</label>
-                                <input type="number" id="photoCount" min="1" max="4" value="4" class="c-input">
-                            </div>
-                        </div>
-                        <button class="c-btn c-btn--secondary" id="startTimerBtn" disabled>Start Timer</button>
-                        <div id="timerStatus" style="font-size: 0.8rem; text-align: center; color: var(--color-text-muted);"></div>
-                    </div>
-
                     <!-- 1. CAMERA & CAPTURE -->
                     <div class="c-card__section">
+                        <div class="c-card__section-title">Source</div>
                         <div class="c-video-container">
                             <video id="videoElement" autoplay muted playsinline aria-label="Live camera feed"></video>
                             <div id="cameraOverlay" role="alert">Click "Start Camera" to begin</div>
@@ -275,6 +254,41 @@
                         <button class="c-btn c-btn--secondary" id="switchCameraBtn" disabled>Switch Camera</button>
                     </div>
 
+                    <!-- 2. LAYOUT & TIMER -->
+                    <div class="c-card__section">
+                        <div class="c-card__section-title">Layout & Timer</div>
+                        <div id="layoutOptions" class="c-option-grid" role="radiogroup">
+                             <div class="grid-option layout-option" data-layout="single">
+                                <img src="assets/layout-single.svg" alt="Single Photo Layout" class="layout-icon">
+                                <span class="option-name">Single</span>
+                            </div>
+                            <div class="grid-option layout-option" data-layout="grid-2x2">
+                                <img src="assets/layout-grid.svg" alt="2x2 Grid Layout" class="layout-icon">
+                                <span class="option-name">2x2 Grid</span>
+                            </div>
+                            <div class="grid-option layout-option" data-layout="grid-strip">
+                                <img src="assets/layout-strip.svg" alt="Photo Strip Layout" class="layout-icon">
+                                <span class="option-name">Strip</span>
+                            </div>
+                             <div class="grid-option layout-option" data-layout="collage">
+                                <img src="assets/layout-collage.svg" alt="Collage Layout" class="layout-icon">
+                                <span class="option-name">Collage</span>
+                            </div>
+                        </div>
+                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div class="c-input-group">
+                                <label class="c-label" for="timerDelay">Delay (s)</label>
+                                <input type="number" id="timerDelay" min="1" max="10" value="3" class="c-input">
+                            </div>
+                            <div class="c-input-group">
+                                <label class="c-label" for="photoCount">Photos</label>
+                                <input type="number" id="photoCount" min="1" max="4" value="4" class="c-input">
+                            </div>
+                        </div>
+                        <button class="c-btn c-btn--secondary" id="startTimerBtn" disabled>Start Timer</button>
+                        <div id="timerStatus" style="font-size: 0.8rem; text-align: center; color: var(--color-text-muted);"></div>
+                    </div>
+
                     
                     
                     <!-- 3. CUSTOMIZATION -->
@@ -287,7 +301,7 @@
                         <div class="c-option-grid" id="fontOptions" role="radiogroup"></div>
                     </div>
                      <div class="c-card__section">
-                        <div class="c-card__section-title">Decorations</div>
+                        <div class="c-card__section-title">Stickers & Decor</div>
                         <div class="c-option-grid" id="decorationOptions"></div>
                     </div>
 
