@@ -91,34 +91,57 @@ class CanvasDrawer {
         const { loadedImages, decoMap } = await this._loadAssets(images, decorations);
         if (loadedImages.length === 0) throw new Error("No images to draw.");
 
-        const { POLAROID_WIDTH, POLAROID_HEIGHT, GRID_GAP } = this.CONSTANTS;
-        
-        let cols = 1, rows = 1;
-        if (layout === 'grid-2x2') { cols = 2; rows = 2; }
-        else if (layout === 'grid-strip' || layout === 'grid-4x1') { rows = 4; }
-        
-        this.canvas.width = cols * POLAROID_WIDTH + (cols - 1) * GRID_GAP;
-        this.canvas.height = rows * POLAROID_HEIGHT + (rows - 1) * GRID_GAP;
+        const { POLAROID_WIDTH, POLAROID_HEIGHT, GRID_GAP, IMG_SIZE, PADDING, TEXT_AREA_HEIGHT } = this.CONSTANTS;
+        const filterValue = this.config.filters[filter].value;
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        const filterValue = this.config.filters[filter].value;
-        
-        for (let i = 0; i < loadedImages.length; i++) {
-            const isLastImage = i === loadedImages.length - 1;
-            const currentText = isLastImage ? text : '';
-            const currentDecos = (layout === 'single' || i === 0) ? decoMap : new Map();
+        if (layout === 'collage') {
+            const w_large = POLAROID_WIDTH, h_large = POLAROID_HEIGHT;
+            const w_small = (POLAROID_WIDTH - GRID_GAP) / 2, h_small = POLAROID_HEIGHT;
 
-            const row = Math.floor(i / cols);
-            const col = i % cols;
-            const x = col * (POLAROID_WIDTH + GRID_GAP);
-            const y = row * (POLAROID_HEIGHT + GRID_GAP);
+            this.canvas.width = w_large;
+            this.canvas.height = h_large + h_small + GRID_GAP;
 
-            this.ctx.save();
-            this.ctx.translate(x, y);
-            this._drawSinglePolaroid(loadedImages[i], currentText, currentDecos, filterValue, font);
-            this.ctx.restore();
+            // Draw large image
+            if (loadedImages[0]) {
+                this.ctx.save();
+                this._drawSinglePolaroid(loadedImages[0], '', decoMap, filterValue, font);
+                this.ctx.restore();
+            }
+            // Draw small images
+            for (let i = 1; i < 3; i++) {
+                if (!loadedImages[i]) continue;
+                const x = (i - 1) * (w_small + GRID_GAP);
+                const y = h_large + GRID_GAP;
+                this.ctx.save();
+                this.ctx.translate(x, y);
+                this.ctx.scale(w_small / POLAROID_WIDTH, h_small / POLAROID_HEIGHT);
+                this._drawSinglePolaroid(loadedImages[i], i === loadedImages.length - 1 ? text : '', new Map(), filterValue, font);
+                this.ctx.restore();
+            }
+        } else {
+            let cols = 1, rows = 1;
+            if (layout === 'grid-2x2') { cols = 2; rows = 2; }
+            else if (layout === 'grid-strip' || layout === 'grid-4x1') { rows = 4; }
+
+            this.canvas.width = cols * POLAROID_WIDTH + (cols - 1) * GRID_GAP;
+            this.canvas.height = rows * POLAROID_HEIGHT + (rows - 1) * GRID_GAP;
+
+            for (let i = 0; i < loadedImages.length; i++) {
+                const isLastImage = i === loadedImages.length - 1;
+                const currentText = isLastImage ? text : '';
+                const currentDecos = (layout === 'single' || i === 0) ? decoMap : new Map();
+                const row = Math.floor(i / cols);
+                const col = i % cols;
+                const x = col * (POLAROID_WIDTH + GRID_GAP);
+                const y = row * (POLAROID_HEIGHT + GRID_GAP);
+
+                this.ctx.save();
+                this.ctx.translate(x, y);
+                this._drawSinglePolaroid(loadedImages[i], currentText, currentDecos, filterValue, font);
+                this.ctx.restore();
+            }
         }
-        
         return this.canvas;
     }
 }
@@ -136,11 +159,13 @@ class PolaroidMaker {
 
     _initConfig() {
         this.config = {
-            filters: { 'none': { name: 'None', value: 'none' }, 'vintage': { name: 'Vintage', value: 'sepia(0.35) contrast(1.1) brightness(1.05) saturate(1.2)' }, 'mono': { name: 'Mono', value: 'grayscale(1)' }, 'retro': { name: 'Retro', value: 'sepia(0.6) contrast(0.9) brightness(1.1)' }, 'gloomy': { name: 'Gloomy', value: 'contrast(1.2) brightness(0.9) saturate(0.8)' }, 'mellow': { name: 'Mellow', value: 'brightness(1.1) contrast(0.95) saturate(0.9)' }, 'dreamy': { name: 'Dreamy', value: 'saturate(1.4) contrast(0.9) brightness(1.1) blur(0.5px)' }, 'lomo': { name: 'Lomo', value: 'saturate(1.5) contrast(1.2)' }, },
+            filters: { 'none': { name: 'None', value: 'none' }, 'vintage': { name: 'Vintage', value: 'sepia(0.35) contrast(1.1) brightness(1.05) saturate(1.2)' }, 'mono': { name: 'Mono', value: 'grayscale(1)' }, 'retro': { name: 'Retro', value: 'sepia(0.6) contrast(0.9) brightness(1.1)' }, 'gloomy': { name: 'Gloomy', value: 'contrast(1.2) brightness(0.9) saturate(0.8)' }, 'mellow': { name: 'Mellow', value: 'brightness(1.1) contrast(0.95) saturate(0.9)' }, 'dreamy': { name: 'Dreamy', value: 'saturate(1.4) contrast(0.9) brightness(1.1) blur(0.5px)' }, 'lomo': { name: 'Lomo', value: 'saturate(1.5) contrast(1.2)' }, 'golden': { name: 'Golden', value: 'sepia(0.2) saturate(1.4) contrast(0.9) brightness(1.1) hue-rotate(-10deg)' }, 'cyber': { name: 'Cyber', value: 'saturate(1.5) contrast(1.2) hue-rotate(180deg) sepia(0.3) brightness(0.9)' }, 'cam90': { name: '90s Cam', value: 'sepia(0.4) contrast(1.1) brightness(1.1) saturate(1.3)' }, },
             fonts: { 'Caveat': 'Cute', 'Patrick Hand': 'Neat', 'Rock Salt': 'Bold', 'Special Elite': 'Typed' },
             decorations: {
                 'ribbon-decoration': { name: 'Ribbon', url: 'assets/ribbon.png', w: 200, h: 100, x: 0, y: 0 },
-                'heart-decoration': { name: 'Heart', url: 'assets/heart.png', w: 150, h: 150, x: 870, y: 0 }
+                'heart-decoration': { name: 'Heart', url: 'assets/heart.png', w: 150, h: 150, x: 870, y: 0 },
+                'sparkle-decoration': { name: 'Sparkle', url: 'assets/sparkle.svg', w: 100, h: 100, x: 880, y: 30 },
+                'doodle-arrow-decoration': { name: 'Arrow', url: 'assets/doodle-arrow.svg', w: 200, h: 200, x: 400, y: 400 }
             }
         };
         this.canvasDrawer = new CanvasDrawer(this.config);
@@ -339,6 +364,7 @@ class PolaroidMaker {
         if (this.state.layout === 'single') return 1;
         if (this.state.layout === 'grid-2x2') return 4;
         if (this.state.layout === 'grid-strip') return 4;
+        if (this.state.layout === 'collage') return 3;
         return 1;
     }
     
