@@ -67,7 +67,7 @@
 
         main {
             display: grid;
-            grid-template-columns: 380px 1fr;
+            grid-template-columns: 480px 1fr;
             gap: 2.5rem;
             align-items: flex-start;
         }
@@ -178,8 +178,8 @@
 
         /* Overlays & Effects */
         .flash-effect { position: fixed; inset: 0; background: white; opacity: 0; pointer-events: none; z-index: 9999; }
-        .flash-effect.active { animation: flash 0.3s ease-out; }
-        @keyframes flash { 0% { opacity: 0; } 50% { opacity: 0.9; } 100% { opacity: 0; } }
+        .flash-effect.active { animation: flash 0.5s ease-out; }
+        @keyframes flash { 0% { opacity: 0; } 50% { opacity: 1; } 100% { opacity: 0; } }
 
         #countdownOverlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center;
