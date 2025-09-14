@@ -213,6 +213,26 @@
             .controls-panel { position: static; max-width: 500px; margin: 0 auto; }
             .preview-area { min-height: auto; padding-top: 2rem; }
         }
+        /* AI Prompts Styles */
+        .prompt-options {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+        }
+        .prompt-btn {
+            justify-content: flex-start;
+            font-size: 0.85rem;
+        }
+        .prompt-display {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--color-border);
+        }
+        .prompt-display textarea {
+            resize: none;
+            margin-bottom: 0.75rem;
+        }
+
         @media (max-width: 480px) {
             .polaroid-output-area, .polaroid-grid-wrapper { width: 100%; max-width: 100%; }
             .polaroid-grid-wrapper.grid-2x2 { grid-template-columns: 1fr; }
@@ -305,7 +325,21 @@
                         <div class="c-option-grid" id="decorationOptions"></div>
                     </div>
 
-                    <!-- 4. FINAL TOUCHES -->
+                    <!-- 4. AI PROMPTS -->
+                    <div class="c-card__section">
+                        <div class="c-card__section-title">AI Image Editing Prompts</div>
+                        <div class="prompt-options">
+                            <div class="loading-prompts">Loading prompts...</div>
+                        </div>
+                        <div id="promptDisplay" class="prompt-display hidden">
+                            <textarea id="promptText" class="c-input" readonly rows="4"></textarea>
+                            <button class="c-btn c-btn--primary" id="copyPromptBtn">
+                                📋 Copy Prompt
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 5. FINAL TOUCHES -->
                     <div class="c-card__section" style="padding-top: 1rem; border-top: 1px solid var(--color-border);">
                         <div class="c-card__section-title">Add A Caption</div>
                         <input type="text" id="polaroidText" placeholder="Write a memory..." maxlength="60" class="c-input">

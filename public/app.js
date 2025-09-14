@@ -155,6 +155,7 @@ class PolaroidMaker {
         this._initUI();
         this._bindEvents();
         this._updateUI();
+        this._loadPrompts();
     }
 
     _initConfig() {
@@ -166,9 +167,12 @@ class PolaroidMaker {
                 'heart-decoration': { name: 'Heart', url: 'assets/heart.png', w: 150, h: 150, x: 870, y: 0 },
                 'sparkle-decoration': { name: 'Sparkle', url: 'assets/sparkle.svg', w: 100, h: 100, x: 880, y: 30 },
                 'doodle-arrow-decoration': { name: 'Arrow', url: 'assets/doodle-arrow.svg', w: 200, h: 200, x: 400, y: 400 }
-            }
+            },
+            supabaseUrl: 'https://pneybqcjgjqlrvpwpmpq.supabase.co',
+            supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBuZXlicWNqZ2pxbHJ2cHdwbXBxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc4NDIzMjcsImV4cCI6MjA3MzQxODMyN30.FwAHPNYBDzCeAC84KPWjXw8S5626sILMAeG1L-7JyLk'
         };
         this.canvasDrawer = new CanvasDrawer(this.config);
+        this.prompts = [];
     }
     
     _initDOM() {
@@ -177,6 +181,7 @@ class PolaroidMaker {
             filterOptions: document.getElementById('filterOptions'), fontOptions: document.getElementById('fontOptions'), decorationOptions: document.getElementById('decorationOptions'),
             downloadBtnText: document.querySelector('#downloadBtn .btn-text'),
             downloadBtnSpinner: document.querySelector('#downloadBtn .spinner'),
+            promptDisplay: document.getElementById('promptDisplay'), promptText: document.getElementById('promptText'), copyPromptBtn: document.getElementById('copyPromptBtn'),
         };
     }
 
@@ -283,6 +288,10 @@ class PolaroidMaker {
             this.state.decorations.has(decoId) ? this.state.decorations.delete(decoId) : this.state.decorations.add(decoId);
             this.renderPolaroid();
         });
+
+        // AI Prompt handlers will be set up after loading from Supabase
+        
+        this.els.copyPromptBtn.addEventListener('click', () => this.copyPrompt());
     }
     
     async startCamera() {
@@ -505,6 +514,61 @@ class PolaroidMaker {
     _triggerFlash() { 
         this.els.flashEffect.classList.add('active'); 
         setTimeout(() => this.els.flashEffect.classList.remove('active'), 300); 
+    }
+
+    async _loadPrompts() {
+        try {
+            const response = await fetch(`${this.config.supabaseUrl}/rest/v1/prompts?select=*`, {
+                headers: {
+                    'apikey': this.config.supabaseKey,
+                    'Authorization': `Bearer ${this.config.supabaseKey}`
+                }
+            });
+            this.prompts = await response.json();
+            this._updatePromptButtons();
+        } catch (error) {
+            console.error('Failed to load prompts:', error);
+        }
+    }
+
+    _updatePromptButtons() {
+        const container = document.querySelector('.prompt-options');
+        if (this.prompts.length > 0) {
+            container.innerHTML = this.prompts.map(prompt => 
+                `<button class="c-btn c-btn--secondary prompt-btn" data-prompt-id="${prompt.id}">
+                    ${prompt.icon || '📝'} ${prompt.title}
+                </button>`
+            ).join('');
+            
+            container.querySelectorAll('.prompt-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const promptId = e.target.dataset.promptId;
+                    this.showPrompt(promptId);
+                });
+            });
+        }
+    }
+
+    showPrompt(promptId) {
+        const prompt = this.prompts.find(p => p.id == promptId);
+        if (prompt) {
+            this.els.promptText.value = prompt.content;
+            this.els.promptDisplay.classList.remove('hidden');
+        }
+    }
+
+    async copyPrompt() {
+        try {
+            await navigator.clipboard.writeText(this.els.promptText.value);
+            const originalText = this.els.copyPromptBtn.textContent;
+            this.els.copyPromptBtn.textContent = '✅ Copied!';
+            setTimeout(() => {
+                this.els.copyPromptBtn.textContent = originalText;
+            }, 2000);
+        } catch (err) {
+            console.error('Failed to copy:', err);
+            this.els.promptText.select();
+        }
     }
 }
 
